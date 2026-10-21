@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.hourlyhire.shared.enums.ErrorCode;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +41,7 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/test/business-error")
         public void businessError() {
             throw new BusinessException(
-                    "BOOKING_CONFLICT",
+                    ErrorCode.BOOKING_CONFLICT,
                     "This booking conflicts with an existing booking."
             );
         }

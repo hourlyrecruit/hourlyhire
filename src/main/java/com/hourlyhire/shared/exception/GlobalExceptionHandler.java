@@ -1,5 +1,6 @@
 package com.hourlyhire.shared.exception;
 
+import com.hourlyhire.shared.enums.ErrorCode;
 import com.hourlyhire.shared.response.ApiErrorResponse;
 import com.hourlyhire.shared.response.FieldErrorDetail;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,7 +30,7 @@ public class GlobalExceptionHandler {
     ) {
         return buildResponse(
                 HttpStatus.NOT_FOUND,
-                "RESOURCE_NOT_FOUND",
+                ErrorCode.RESOURCE_NOT_FOUND,
                 ex.getMessage(),
                 List.of(),
                 request
@@ -71,7 +72,7 @@ public class GlobalExceptionHandler {
 
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "VALIDATION_FAILED",
+                ErrorCode.VALIDATION_FAILED,
                 "Request validation failed.",
                 details,
                 request
@@ -94,7 +95,7 @@ public class GlobalExceptionHandler {
 
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "VALIDATION_FAILED",
+                ErrorCode.VALIDATION_FAILED,
                 "Request validation failed.",
                 details,
                 request
@@ -108,7 +109,7 @@ public class GlobalExceptionHandler {
     ) {
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "VALIDATION_FAILED",
+                ErrorCode.VALIDATION_FAILED,
                 "Request parameter or method validation failed.",
                 List.of(),
                 request
@@ -122,7 +123,7 @@ public class GlobalExceptionHandler {
     ) {
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "MALFORMED_REQUEST",
+                ErrorCode.MALFORMED_REQUEST,
                 "The request body is missing or has an invalid format.",
                 List.of(),
                 request
@@ -138,7 +139,7 @@ public class GlobalExceptionHandler {
 
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "INTERNAL_ERROR",
+                ErrorCode.INTERNAL_ERROR,
                 "An unexpected error occurred.",
                 List.of(),
                 request
@@ -147,7 +148,7 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ApiErrorResponse> buildResponse(
             HttpStatus status,
-            String code,
+            ErrorCode code,
             String message,
             List<FieldErrorDetail> details,
             HttpServletRequest request

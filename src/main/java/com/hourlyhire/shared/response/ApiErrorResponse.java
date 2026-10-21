@@ -1,5 +1,7 @@
 package com.hourlyhire.shared.response;
 
+import com.hourlyhire.shared.enums.ErrorCode;
+
 import java.time.Instant;
 import java.util.List;
 
@@ -11,14 +13,14 @@ public record ApiErrorResponse(
         String correlationId
 ) {
     public record ErrorDetails(
-            String code,
+            ErrorCode code,
             String message,
             List<FieldErrorDetail> details
     ) {
     }
 
     public static ApiErrorResponse of(
-            String code,
+            ErrorCode code,
             String message,
             List<FieldErrorDetail> details,
             String path,

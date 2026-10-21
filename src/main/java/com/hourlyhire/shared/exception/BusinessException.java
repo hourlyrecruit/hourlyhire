@@ -1,15 +1,17 @@
 package com.hourlyhire.shared.exception;
 
+import com.hourlyhire.shared.enums.ErrorCode;
+
 public class BusinessException extends RuntimeException {
 
-    private final String code;
+    private final ErrorCode code;
 
-    public BusinessException(String code, String message) {
+    public BusinessException(ErrorCode code, String message) {
         super(message);
         this.code = code;
     }
 
-    public String getCode() {
+    public ErrorCode getCode() {
         return code;
     }
 }
