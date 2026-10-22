@@ -10,4 +10,6 @@ public class HourlyhireApplication {
 		SpringApplication.run(HourlyhireApplication.class, args);
 	}
 
+
+	
 }
