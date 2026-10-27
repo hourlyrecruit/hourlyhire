@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 
 @RequiredArgsConstructor
-public class userDetails implements UserDetails {
+public class CustomUserDetails implements UserDetails {
     private final UserAccount userAccount;
     private final Collection<? extends GrantedAuthority> authorities;
 

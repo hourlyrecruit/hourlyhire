@@ -1,5 +1,6 @@
 package com.hourlyhire.authentication.entity;
 
+import com.hourlyhire.authentication.enums.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -44,6 +45,10 @@ public class UserAccount {
 
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_status", nullable = false, length = 20)

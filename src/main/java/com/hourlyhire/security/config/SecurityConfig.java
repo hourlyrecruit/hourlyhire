@@ -1,6 +1,7 @@
 package com.hourlyhire.security.config;
 
 import com.hourlyhire.security.exceptionHandler.JwtAccessDeniedHandler;
+import com.hourlyhire.security.userDetails.CustomUserDetailsService;
 import com.hourlyhire.shared.logging.CorrelationIdFilter;
 import lombok.RequiredArgsConstructor;
 
@@ -31,7 +32,8 @@ public class SecurityConfig {
             HttpSecurity http,
             CorrelationIdFilter correlationIdFilter,
             AuthenticationEntryPoint authenticationEntryPoint,
-            JwtAccessDeniedHandler jwtAccessDeniedHandler
+            JwtAccessDeniedHandler jwtAccessDeniedHandler,
+            CustomUserDetailsService customUserDetailsService
             ) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -47,7 +49,7 @@ public class SecurityConfig {
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated())
-                .authenticationProvider(authenticationProvider())
+                .authenticationProvider(authenticationProvider(customUserDetailsService))
                 .addFilterBefore(
                 correlationIdFilter,
                 SecurityContextHolderFilter.class)
