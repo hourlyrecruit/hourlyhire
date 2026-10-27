@@ -1,4 +1,4 @@
-package com.hourlyhire.identity.entity;
+package com.hourlyhire.authentication.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -108,6 +108,8 @@ public class UserAccount {
     public enum AccountStatus {
         ACTIVE,
         LOCKED,
-        DISABLED
+        DISABLED,
+        PASSWORD_EXPIRED
+
     }
 }

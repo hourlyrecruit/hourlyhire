@@ -1,10 +1,10 @@
-package com.hourlyhire.identity.controller;
+package com.hourlyhire.authentication.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hourlyhire.identity.security.SecurityConfig;
+import com.hourlyhire.authentication.security.SecurityConfig;
 import org.springframework.context.annotation.Import;
-import com.hourlyhire.identity.dto.RegisterRequest;
-import com.hourlyhire.identity.service.AuthService;
+import com.hourlyhire.authentication.dto.RegisterRequest;
+import com.hourlyhire.authentication.service.AuthService;
 import com.hourlyhire.shared.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

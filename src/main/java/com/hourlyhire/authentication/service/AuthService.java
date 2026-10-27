@@ -1,8 +1,8 @@
-package com.hourlyhire.identity.service;
+package com.hourlyhire.authentication.service;
 
-import com.hourlyhire.identity.dto.RegisterRequest;
-import com.hourlyhire.identity.entity.UserAccount;
-import com.hourlyhire.identity.repository.UserAccountRepository;
+import com.hourlyhire.authentication.dto.RegisterRequest;
+import com.hourlyhire.authentication.entity.UserAccount;
+import com.hourlyhire.authentication.repository.UserAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

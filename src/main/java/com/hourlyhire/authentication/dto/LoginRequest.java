@@ -1,4 +1,4 @@
-package com.hourlyhire.identity.dto;
+package com.hourlyhire.authentication.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

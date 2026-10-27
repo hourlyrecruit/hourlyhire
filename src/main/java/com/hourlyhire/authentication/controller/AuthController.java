@@ -1,7 +1,7 @@
-package com.hourlyhire.identity.controller;
+package com.hourlyhire.authentication.controller;
 
-import com.hourlyhire.identity.dto.RegisterRequest;
-import com.hourlyhire.identity.service.AuthService;
+import com.hourlyhire.authentication.dto.RegisterRequest;
+import com.hourlyhire.authentication.service.AuthService;
 import com.hourlyhire.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

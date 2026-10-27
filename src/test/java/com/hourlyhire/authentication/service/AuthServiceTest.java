@@ -1,16 +1,14 @@
-package com.hourlyhire.identity.service;
+package com.hourlyhire.authentication.service;
 
-import com.hourlyhire.identity.dto.RegisterRequest;
-import com.hourlyhire.identity.entity.UserAccount;
-import com.hourlyhire.identity.repository.UserAccountRepository;
+import com.hourlyhire.authentication.dto.RegisterRequest;
+import com.hourlyhire.authentication.entity.UserAccount;
+import com.hourlyhire.authentication.repository.UserAccountRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;

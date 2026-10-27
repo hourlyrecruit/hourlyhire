@@ -1,6 +1,6 @@
-package com.hourlyhire.identity.repository;
+package com.hourlyhire.authentication.repository;
 
-import com.hourlyhire.identity.entity.UserAccount;
+import com.hourlyhire.authentication.entity.UserAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
