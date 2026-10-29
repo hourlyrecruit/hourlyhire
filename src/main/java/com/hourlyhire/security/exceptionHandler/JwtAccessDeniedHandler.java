@@ -1,6 +1,6 @@
 package com.hourlyhire.security.exceptionHandler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.hourlyhire.shared.enums.ErrorCode;
 import com.hourlyhire.shared.response.ApiErrorResponse;
 import jakarta.servlet.ServletException;
@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,7 +33,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
                 "You do not have permission to perform this action.",
                 List.of(),
                 request.getRequestURI(),
-                request.getHeader("X-Correlation-ID")
+                MDC.get("correlationId")
         );
 
         response.setStatus(HttpStatus.FORBIDDEN.value());

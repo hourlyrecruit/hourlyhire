@@ -1,6 +1,6 @@
 package com.hourlyhire.security.exceptionHandler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.hourlyhire.shared.enums.ErrorCode;
 import com.hourlyhire.shared.response.ApiErrorResponse;
 import com.hourlyhire.shared.response.FieldErrorDetail;
@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,7 +33,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 "Authentication is required to access this resource.",
                 List.of(),
                 request.getRequestURI(),
-                request.getHeader("X-Correlation-ID")
+                MDC.get("correlationId")
         );
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

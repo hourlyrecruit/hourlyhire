@@ -16,6 +16,7 @@ import jakarta.persistence.Version;
 
 import java.time.Instant;
 import java.util.Locale;
+import java.util.Objects;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -47,7 +48,7 @@ public class UserAccount {
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "role", nullable = false)
     private Role role;
 
     @Enumerated(EnumType.STRING)
@@ -64,9 +65,10 @@ public class UserAccount {
     @Column(name = "version", nullable = false)
     private Long version;
 
-    public UserAccount(String email, String passwordHash) {
+    public UserAccount(String email, String passwordHash, Role role) {
         this.email = normalizeEmail(email);
         this.passwordHash = passwordHash;
+        this.role = Objects.requireNonNull(role, "Role cannot be null.");
     }
 
     @PrePersist
@@ -92,6 +94,10 @@ public class UserAccount {
         this.passwordHash = passwordHash;
     }
 
+    public void changeRole(Role role) {
+        this.role = Objects.requireNonNull(role, "Role cannot be null.");
+    }
+
     public void changeAccountStatus(AccountStatus accountStatus) {
         if (accountStatus == null) {
             throw new IllegalArgumentException(
@@ -115,6 +121,5 @@ public class UserAccount {
         LOCKED,
         DISABLED,
         PASSWORD_EXPIRED
-
     }
 }

@@ -1,5 +1,26 @@
 package com.hourlyhire.shared.enums;
 
+import org.springframework.http.HttpStatus;
+
 public enum ErrorCode {
-    BOOKING_CONFLICT, VALIDATION_FAILED, RESOURCE_NOT_FOUND, INTERNAL_ERROR, MALFORMED_REQUEST, UNAUTHORIZED, ACCESS_DENIED, EMAIL_ALREADY_EXISTS
+    VALIDATION_FAILED(HttpStatus.BAD_REQUEST),
+    MALFORMED_REQUEST(HttpStatus.BAD_REQUEST),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN),
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND),
+    EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT),
+    BOOKING_CONFLICT(HttpStatus.CONFLICT),
+    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
+
+    private final HttpStatus httpStatus;
+
+    ErrorCode(HttpStatus httpStatus) {
+        this.httpStatus = httpStatus;
+    }
+
+    public HttpStatus getHttpStatus() {
+        return httpStatus;
+    }
 }

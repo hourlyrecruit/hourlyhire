@@ -1,10 +1,13 @@
 package com.hourlyhire.security.config;
 
 import com.hourlyhire.security.exceptionHandler.JwtAccessDeniedHandler;
+import com.hourlyhire.security.jwt.JwtAuthenticationFilter;
+import com.hourlyhire.security.jwt.JwtProperties;
 import com.hourlyhire.security.userDetails.CustomUserDetailsService;
 import com.hourlyhire.shared.logging.CorrelationIdFilter;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,15 +29,18 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 @Configuration
 @RequiredArgsConstructor
 @EnableMethodSecurity
+@EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             CorrelationIdFilter correlationIdFilter,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
             AuthenticationEntryPoint authenticationEntryPoint,
             JwtAccessDeniedHandler jwtAccessDeniedHandler,
             CustomUserDetailsService customUserDetailsService
-            ) throws Exception {
+    ) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
@@ -51,13 +57,12 @@ public class SecurityConfig {
                                 .authenticated())
                 .authenticationProvider(authenticationProvider(customUserDetailsService))
                 .addFilterBefore(
-                correlationIdFilter,
-                SecurityContextHolderFilter.class)
+                        correlationIdFilter,
+                        SecurityContextHolderFilter.class)
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class);
         return http.build();
-
     }
 
     @Bean
@@ -83,6 +88,20 @@ public class SecurityConfig {
             CorrelationIdFilter filter) {
 
         FilterRegistrationBean<CorrelationIdFilter> registration =
+                new FilterRegistrationBean<>(filter);
+
+        registration.setEnabled(false);
+
+        return registration;
+    }
+
+    // JwtAuthenticationFilter is a @Component, so Spring Boot would also register it as a
+    // plain servlet filter. Disable that: it must only run inside the security filter chain.
+    @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter> jwtAuthenticationFilterRegistration(
+            JwtAuthenticationFilter filter) {
+
+        FilterRegistrationBean<JwtAuthenticationFilter> registration =
                 new FilterRegistrationBean<>(filter);
 
         registration.setEnabled(false);
