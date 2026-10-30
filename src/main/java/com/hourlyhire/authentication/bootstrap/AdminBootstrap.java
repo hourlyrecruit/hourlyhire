@@ -31,6 +31,6 @@ public class AdminBootstrap implements ApplicationRunner {
         String normalized = email.trim().toLowerCase(Locale.ROOT);
         if (repo.existsByEmail(normalized)) return;
 
-        repo.save(new UserAccount(normalized, encoder.encode(password), Role.ADMIN));
+        repo.save(new UserAccount(normalized, "Admin", encoder.encode(password), Role.ADMIN));
     }
 }

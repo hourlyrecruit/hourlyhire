@@ -18,6 +18,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import com.hourlyhire.authentication.dto.ForgotPasswordRequest;
+import com.hourlyhire.authentication.dto.ResetPasswordRequest;
+import com.hourlyhire.authentication.service.PasswordResetService;
 
 import java.util.Map;
 
@@ -28,6 +31,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/register")
     @Operation(summary = "User Registration. Access: All")
@@ -93,6 +97,34 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(
                 "Current user retrieved successfully.",
                 authService.me(user.id()),
+                httpRequest.getRequestURI()));
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request a password reset link. Access: All")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request,
+            HttpServletRequest httpRequest) {
+
+        passwordResetService.requestReset(request.getEmail());
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "If an account exists for this email, a reset link has been sent.",
+                null,
+                httpRequest.getRequestURI()));
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Set a new password using the emailed token. Access: All")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request,
+            HttpServletRequest httpRequest) {
+
+        passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "Password reset successfully. Please log in with your new password.",
+                null,
                 httpRequest.getRequestURI()));
     }
 }

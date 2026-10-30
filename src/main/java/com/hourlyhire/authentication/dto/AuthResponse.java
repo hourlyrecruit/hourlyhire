@@ -9,6 +9,7 @@ public record AuthResponse(
         long expiresIn,
         Long userId,
         String email,
+        String username,
         Role role
 ) {
 }

@@ -60,6 +60,7 @@ public class AuthService {
 
     private Long createAccount(RegisterRequest request) {
         String email = normalizeEmail(request.getEmail());
+        String username = request.getUsername().trim();
 
         if (userAccountRepository.existsByEmail(email)) {
             throw new BusinessException(EMAIL_ALREADY_EXISTS,
@@ -72,7 +73,7 @@ public class AuthService {
             // saveAndFlush so a unique-constraint race is thrown here,
             // not later at commit time where it can't be caught.
             return userAccountRepository
-                    .saveAndFlush(new UserAccount(email, hash, request.getRole()))
+                    .saveAndFlush(new UserAccount(email, username, hash, request.getRole()))
                     .getId();
         } catch (DataIntegrityViolationException ex) {
             throw new BusinessException(EMAIL_ALREADY_EXISTS,
@@ -152,6 +153,7 @@ public class AuthService {
         return new MeResponse(
                 user.getId(),
                 user.getEmail(),
+                user.getUsername(),
                 user.getRole(),
                 user.getAccountStatus().name()
         );
@@ -188,10 +190,12 @@ public class AuthService {
         return new UserSummary(
                 u.getId(),
                 u.getEmail(),
+                u.getUsername(),
                 u.getRole(),
                 u.getAccountStatus().name(),
                 u.getCreatedAt()
         );
+
     }
 
     private AuthResponse buildAuthResponse(UserAccount user, String refreshToken) {
@@ -202,6 +206,7 @@ public class AuthService {
                 jwtService.getExpirationSeconds(),
                 user.getId(),
                 user.getEmail(),
+                user.getUsername(),
                 user.getRole()
         );
     }

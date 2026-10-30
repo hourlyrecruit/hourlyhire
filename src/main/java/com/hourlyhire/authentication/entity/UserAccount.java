@@ -44,6 +44,9 @@ public class UserAccount {
     @Column(name = "email", nullable = false, length = 254)
     private String email;
 
+    @Column(name = "username", nullable = false, length = 100)
+    private String username;
+
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
@@ -65,10 +68,11 @@ public class UserAccount {
     @Column(name = "version", nullable = false)
     private Long version;
 
-    public UserAccount(String email, String passwordHash, Role role) {
+    public UserAccount(String email, String username, String passwordHash, Role role) {
         this.email = normalizeEmail(email);
+        this.username = username == null ? null : username.trim();
         this.passwordHash = passwordHash;
-        this.role = Objects.requireNonNull(role, "Role cannot be null.");
+        this.role = role;
     }
 
     @PrePersist
@@ -88,6 +92,13 @@ public class UserAccount {
 
     public void changeEmail(String email) {
         this.email = normalizeEmail(email);
+    }
+
+    public void changeUsername(String username) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Username cannot be blank.");
+        }
+        this.username = username.trim();
     }
 
     public void changePasswordHash(String passwordHash) {
