@@ -12,7 +12,10 @@ public enum ErrorCode {
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND),
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT),
     BOOKING_CONFLICT(HttpStatus.CONFLICT),
-    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
+    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_RESET_TOKEN(HttpStatus.BAD_REQUEST),
+    USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT);
+
 
     private final HttpStatus httpStatus;
 
