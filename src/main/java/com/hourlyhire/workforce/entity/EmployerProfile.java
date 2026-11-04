@@ -1,9 +1,12 @@
+
 package com.hourlyhire.workforce.entity;
 
 import com.hourlyhire.authentication.entity.UserAccount;
 import com.hourlyhire.workforce.enums.EmployerType;
 import com.hourlyhire.workforce.enums.ProfileStatus;
+
 import jakarta.persistence.*;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,16 +14,23 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "employer_profiles",
+@Table(
+        name = "employer_profiles",
         uniqueConstraints = {
-        @UniqueConstraint( name = "uk_employer_profiles_user_id",
-                                columnNames = "user_id" )
+                @UniqueConstraint(
+                        name = "uk_employer_profiles_user_id",
+                        columnNames = "user_id"
+                )
         },
         indexes = {
-                @Index( name = "idx_employer_profile_type",
-                        columnList = "employer_type" ),
-                @Index(name = "idx_employer_profile_status",
-                        columnList = "profile_status")
+                @Index(
+                        name = "idx_employer_profile_type",
+                        columnList = "employer_type"
+                ),
+                @Index(
+                        name = "idx_employer_profile_status",
+                        columnList = "profile_status"
+                )
         }
 )
 @Getter
@@ -32,16 +42,18 @@ public class EmployerProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // One employer profile belongs to one UserAccount
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
-            name = "user_ids",
+            name = "user_id",
+            referencedColumnName = "id",
             nullable = false,
-            unique = true
+            unique = true,
+            foreignKey = @ForeignKey(
+                    name = "fk_employer_profiles_user"
+            )
     )
     private UserAccount userAccount;
-
-    @Column(name = "user_id", nullable = false, unique = true)
-    private Long userId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "employer_type", nullable = false, length = 30)

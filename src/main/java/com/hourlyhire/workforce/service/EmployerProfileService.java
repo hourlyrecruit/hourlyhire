@@ -1,5 +1,6 @@
-
 package com.hourlyhire.workforce.service;
+
+import com.hourlyhire.authentication.enums.Role;
 
 import com.hourlyhire.workforce.dto.request.CreateEmployerProfileRequest;
 import com.hourlyhire.workforce.dto.request.UpdateEmployerProfileRequest;
@@ -12,36 +13,48 @@ import org.springframework.data.domain.Pageable;
 
 public interface EmployerProfileService {
 
-    // Create employer profile
+    // 1. Create employer profile
     EmployerProfileResponse createProfile(
-            CreateEmployerProfileRequest request
+            CreateEmployerProfileRequest request,
+            Long targetUserId
     );
 
-    // Get profile using employer profile ID
-    EmployerProfileResponse getProfileById(Long employerId);
+    // 2. Get profile by employer profile ID with access validation
+    EmployerProfileResponse getProfileById(
+            Long employerId,
+            Long requesterId,
+            Role requesterRole
+    );
 
-    // Get profile using user ID
-    EmployerProfileResponse getProfileByUserId(Long userId);
+    // 3. Get profile by user ID with ownership validation
+    EmployerProfileResponse getProfileByUserId(
+            Long userId,
+            Long requesterId,
+            Role requesterRole
+    );
 
-    // Update employer profile
+    // 4. Update employer profile with ownership validation
     EmployerProfileResponse updateProfile(
             Long employerId,
-            UpdateEmployerProfileRequest request
+            UpdateEmployerProfileRequest request,
+            Long requesterId,
+            Role requesterRole
     );
 
-    // Activate or deactivate employer profile
+    // 5. Activate or deactivate employer profile
     EmployerProfileResponse updateProfileStatus(
             Long employerId,
             ProfileStatus profileStatus
     );
 
-    // Get all employer profiles with pagination
+    // 6. Get all employer profiles with pagination
     Page<EmployerProfileResponse> getAllProfiles(Pageable pageable);
 
-    // Get employer profiles using optional filters
+    // 7. Get employer profiles using optional filters and role validation
     Page<EmployerProfileResponse> getFilteredProfiles(
             EmployerType employerType,
             ProfileStatus profileStatus,
-            Pageable pageable
+            Pageable pageable,
+            Role requesterRole
     );
 }

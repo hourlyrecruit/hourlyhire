@@ -37,14 +37,14 @@ public class WorkerProfile {
 
         @OneToOne(fetch = FetchType.LAZY, optional = false)
         @JoinColumn(
-                name = "user_ids",
+                name = "user_id",
                 nullable = false,
                 unique = true
         )
         private UserAccount userAccount;
 
-        @Column(name = "user_id", nullable = false, unique = true)
-        private Long userId;
+//        @Column(name = "user_id", nullable = false, unique = true)
+//        private Long userId;
 
         @Column(name = "bio", columnDefinition = "TEXT")
         private String bio;

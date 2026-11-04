@@ -17,10 +17,10 @@ public interface EmployerProfileRepository
         extends JpaRepository<EmployerProfile, Long> {
 
     // Check whether an employer profile already exists for a user
-    boolean existsByUserId(Long userId);
+    boolean existsByUserAccount_Id(Long userId);
 
     // Find employer profile using user ID
-    Optional<EmployerProfile> findByUserId(Long userId);
+    Optional<EmployerProfile> findByUserAccount_Id(Long userId);
 
     // Find profiles using employer type
     Page<EmployerProfile> findByEmployerType(

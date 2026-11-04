@@ -17,9 +17,9 @@ import java.util.Optional;
 public interface WorkerProfileRepository
         extends JpaRepository<WorkerProfile, Long> {
 
-    boolean existsByUserId(Long userId);
+    boolean existsByUserAccount_Id(Long userId);
 
-    Optional<WorkerProfile> findByUserId(Long userId);
+    Optional<WorkerProfile> findByUserAccount_Id(Long userId);
 
     Page<WorkerProfile> findByProfileStatus(
             ProfileStatus profileStatus,

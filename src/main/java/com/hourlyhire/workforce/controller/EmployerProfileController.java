@@ -1,5 +1,7 @@
 package com.hourlyhire.workforce.controller;
 
+import com.hourlyhire.authentication.enums.Role;
+import com.hourlyhire.security.jwt.AuthenticatedUser;
 import com.hourlyhire.workforce.dto.request.CreateEmployerProfileRequest;
 import com.hourlyhire.workforce.dto.request.UpdateEmployerProfileRequest;
 import com.hourlyhire.workforce.dto.response.EmployerProfileResponse;
@@ -21,6 +23,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -39,10 +42,15 @@ public class EmployerProfileController {
     )
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
     public ResponseEntity<EmployerProfileResponse> createProfile(
-            @Valid @RequestBody CreateEmployerProfileRequest request) {
+            @Valid @RequestBody CreateEmployerProfileRequest request,
+            @AuthenticationPrincipal AuthenticatedUser currentUser) {
+
+        Long targetUserId = currentUser.role() == Role.ADMIN
+                ? request.getUserId()
+                : currentUser.id();
 
         EmployerProfileResponse response =
-                employerProfileService.createProfile(request);
+                employerProfileService.createProfile(request, targetUserId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -50,11 +58,17 @@ public class EmployerProfileController {
     // 2. Get employer profile by profile ID
     @GetMapping("/{employerId}")
     @Operation(summary = "Get employer profile by ID")
+    @PreAuthorize("hasAnyRole('WORKER', 'EMPLOYER', 'ADMIN')")
     public ResponseEntity<EmployerProfileResponse> getProfileById(
-            @PathVariable Long employerId) {
+            @PathVariable Long employerId,
+            @AuthenticationPrincipal AuthenticatedUser currentUser) {
 
         EmployerProfileResponse response =
-                employerProfileService.getProfileById(employerId);
+                employerProfileService.getProfileById(
+                        employerId,
+                        currentUser.id(),
+                        currentUser.role()
+                );
 
         return ResponseEntity.ok(response);
     }
@@ -62,11 +76,17 @@ public class EmployerProfileController {
     // 3. Get employer profile by user ID
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get employer profile by user ID")
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
     public ResponseEntity<EmployerProfileResponse> getProfileByUserId(
-            @PathVariable Long userId) {
+            @PathVariable Long userId,
+            @AuthenticationPrincipal AuthenticatedUser currentUser) {
 
         EmployerProfileResponse response =
-                employerProfileService.getProfileByUserId(userId);
+                employerProfileService.getProfileByUserId(
+                        userId,
+                        currentUser.id(),
+                        currentUser.role()
+                );
 
         return ResponseEntity.ok(response);
     }
@@ -80,10 +100,16 @@ public class EmployerProfileController {
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
     public ResponseEntity<EmployerProfileResponse> updateProfile(
             @PathVariable Long employerId,
-            @Valid @RequestBody UpdateEmployerProfileRequest request) {
+            @Valid @RequestBody UpdateEmployerProfileRequest request,
+            @AuthenticationPrincipal AuthenticatedUser currentUser) {
 
         EmployerProfileResponse response =
-                employerProfileService.updateProfile(employerId, request);
+                employerProfileService.updateProfile(
+                        employerId,
+                        request,
+                        currentUser.id(),
+                        currentUser.role()
+                );
 
         return ResponseEntity.ok(response);
     }
@@ -91,14 +117,15 @@ public class EmployerProfileController {
     // 5. Activate or deactivate employer profile
     @PatchMapping("/{employerId}/status")
     @Operation(summary = "Update employer profile status")
-    @PreAuthorize("hasRole('HR_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EmployerProfileResponse> updateProfileStatus(
             @PathVariable Long employerId,
             @RequestParam ProfileStatus status) {
 
         EmployerProfileResponse response =
                 employerProfileService.updateProfileStatus(
-                        employerId, status
+                        employerId,
+                        status
                 );
 
         return ResponseEntity.ok(response);
@@ -107,6 +134,7 @@ public class EmployerProfileController {
     // 6. Get all employer profiles with pagination
     @GetMapping
     @Operation(summary = "Get all employer profiles")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<EmployerProfileResponse>> getAllProfiles(
             @ParameterObject
             @PageableDefault(
@@ -124,6 +152,7 @@ public class EmployerProfileController {
     // 7. Filter employer profiles
     @GetMapping("/filter")
     @Operation(summary = "Filter employer profiles")
+    @PreAuthorize("hasAnyRole('WORKER', 'ADMIN')")
     public ResponseEntity<Page<EmployerProfileResponse>> getFilteredProfiles(
             @RequestParam(required = false) EmployerType employerType,
             @RequestParam(required = false) ProfileStatus profileStatus,
@@ -132,15 +161,33 @@ public class EmployerProfileController {
                     page = 0,
                     size = 10,
                     sort = "id"
-            ) Pageable pageable) {
+            ) Pageable pageable,
+            @AuthenticationPrincipal AuthenticatedUser currentUser) {
 
         Page<EmployerProfileResponse> response =
                 employerProfileService.getFilteredProfiles(
                         employerType,
                         profileStatus,
-                        pageable
+                        pageable,
+                        currentUser.role()
                 );
 
         return ResponseEntity.ok(response);
+    }
+
+    // 8. Get logged-in employer's own profile
+    @GetMapping("/my-profile")
+    @Operation(summary = "Get my employer profile")
+    @PreAuthorize("hasRole('EMPLOYER')")
+    public ResponseEntity<EmployerProfileResponse> getMyProfile(
+            @AuthenticationPrincipal AuthenticatedUser currentUser) {
+
+        return ResponseEntity.ok(
+                employerProfileService.getProfileByUserId(
+                        currentUser.id(),
+                        currentUser.id(),
+                        currentUser.role()
+                )
+        );
     }
 }
