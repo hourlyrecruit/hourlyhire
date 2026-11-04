@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="hourlyhire" type="Application" factoryName="Application">
+    <envs>
+      <env name="ADMIN_EMAIL" value="admin@gmail.com" />
+      <env name="ADMIN_PASSWORD" value="admin@123456" />
+      <env name="DB_PASSWORD" value="hourlyhire@123" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.hourlyhire.HourlyhireApplication" />
+    <module name="hourlyhire" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

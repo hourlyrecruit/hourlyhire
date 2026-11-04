@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/workforce/profiles")
 @RequiredArgsConstructor
-//@PreAuthorize("hasRole('WORKER')")
 public class WorkerProfileController {
+
     private final WorkerProfileService workerProfileService;
 
     @Operation(
@@ -38,7 +38,7 @@ public class WorkerProfileController {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @PostMapping
-   // @PreAuthorize("hasRole('WORKER')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public ResponseEntity<WorkerProfileResponse> createWorkerProfile(
             @Valid @RequestBody CreateWorkerProfileRequest request) {
         WorkerProfileResponse response
@@ -59,6 +59,7 @@ public class WorkerProfileController {
             security = {}
     )
     @GetMapping("/{workerId}")
+    @PreAuthorize("hasAnyRole('WORKER', 'EMPLOYER', 'ADMIN')")
     public ResponseEntity<WorkerProfileResponse> getWorkerProfile(@PathVariable Long workerId)
     {
         WorkerProfileResponse response = workerProfileService.getWorkerProfile(workerId);
@@ -67,6 +68,7 @@ public class WorkerProfileController {
 
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public ResponseEntity<WorkerProfileResponse> getWorkerProfileByUserId(
             @PathVariable Long userId) {
 
@@ -88,6 +90,7 @@ public class WorkerProfileController {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @PutMapping("/{workerId}")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'HR_ADMIN')")
     public ResponseEntity<WorkerProfileResponse> updateWorkerProfile(
             @PathVariable Long workerId,
             @Valid @RequestBody UpdateWorkerProfileRequest request) {

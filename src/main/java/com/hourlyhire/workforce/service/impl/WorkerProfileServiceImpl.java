@@ -32,8 +32,9 @@ public class WorkerProfileServiceImpl implements WorkerProfileService {
             CreateWorkerProfileRequest request) {
 
         if (workerProfileRepository.existsByUserId(request.getUserId())) {
-            throw new IllegalStateException(
-                    "A worker profile already exists for this user"
+            throw new BusinessException(
+                    ErrorCode.VALIDATION_FAILED,
+                    "Worker profile already exists for this user."
             );
         }
         WorkerProfile profile = new WorkerProfile();

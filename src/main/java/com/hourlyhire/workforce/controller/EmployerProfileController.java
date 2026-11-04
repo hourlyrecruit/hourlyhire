@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -36,6 +37,7 @@ public class EmployerProfileController {
             summary = "Create employer profile",
             description = "Creates a new employer profile for an existing user."
     )
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
     public ResponseEntity<EmployerProfileResponse> createProfile(
             @Valid @RequestBody CreateEmployerProfileRequest request) {
 
@@ -75,6 +77,7 @@ public class EmployerProfileController {
             summary = "Update employer profile",
             description = "Updates the supplied non-null employer profile fields."
     )
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
     public ResponseEntity<EmployerProfileResponse> updateProfile(
             @PathVariable Long employerId,
             @Valid @RequestBody UpdateEmployerProfileRequest request) {
@@ -88,6 +91,7 @@ public class EmployerProfileController {
     // 5. Activate or deactivate employer profile
     @PatchMapping("/{employerId}/status")
     @Operation(summary = "Update employer profile status")
+    @PreAuthorize("hasRole('HR_ADMIN')")
     public ResponseEntity<EmployerProfileResponse> updateProfileStatus(
             @PathVariable Long employerId,
             @RequestParam ProfileStatus status) {

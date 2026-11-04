@@ -1,5 +1,6 @@
 package com.hourlyhire.workforce.entity;
 
+import com.hourlyhire.authentication.entity.UserAccount;
 import com.hourlyhire.workforce.enums.EmployerType;
 import com.hourlyhire.workforce.enums.ProfileStatus;
 import jakarta.persistence.*;
@@ -30,6 +31,14 @@ public class EmployerProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "user_ids",
+            nullable = false,
+            unique = true
+    )
+    private UserAccount userAccount;
 
     @Column(name = "user_id", nullable = false, unique = true)
     private Long userId;
