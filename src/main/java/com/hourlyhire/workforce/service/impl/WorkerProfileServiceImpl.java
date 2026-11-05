@@ -3,6 +3,8 @@ package com.hourlyhire.workforce.service.impl;
 import com.hourlyhire.authentication.entity.UserAccount;
 import com.hourlyhire.authentication.enums.Role;
 import com.hourlyhire.authentication.repository.UserAccountRepository;
+import com.hourlyhire.security.jwt.AuthenticatedUser;
+import com.hourlyhire.security.utils.SecurityUtils;
 import com.hourlyhire.shared.enums.ErrorCode;
 import com.hourlyhire.shared.exception.BusinessException;
 import com.hourlyhire.shared.exception.ResourceNotFoundException;
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class WorkerProfileServiceImpl implements WorkerProfileService {
 
+    AuthenticatedUser user = SecurityUtils.getCurrentUser();
     private final UserAccountRepository userAccountRepository;
     private final WorkerProfileRepository workerProfileRepository;
 
