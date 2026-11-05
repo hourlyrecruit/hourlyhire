@@ -1,5 +1,6 @@
 package com.hourlyhire.workforce.controller;
 
+import com.hourlyhire.security.utils.SecurityUtils;
 import com.hourlyhire.workforce.dto.request.*;
 import com.hourlyhire.workforce.dto.response.WorkerProfileResponse;
 import com.hourlyhire.workforce.enums.ProfileStatus;
@@ -24,26 +25,30 @@ import org.springframework.web.bind.annotation.*;
 public class WorkerProfileController {
 
     private final WorkerProfileService workerProfileService;
-
     @Operation(
             summary = "Create Worker Profile",
             description = """
-            Creates a worker profile for an existing user.
+        Creates a worker profile for the authenticated user.
 
-            Authentication: Required.
-            Intended access: WORKER.
-            Access restriction: A worker can create their own profile.
-            Business rule: One worker profile per user.
-            """,
+        Authentication: Required.
+        Intended access: WORKER.
+        Access restriction: A worker can create their own profile.
+        Business rule: One worker profile per user.
+        """,
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @PostMapping
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize("hasRole('WORKER')")
     public ResponseEntity<WorkerProfileResponse> createWorkerProfile(
             @Valid @RequestBody CreateWorkerProfileRequest request) {
-        WorkerProfileResponse response
-                = workerProfileService.createWorkerProfile(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        Long userId = SecurityUtils.getCurrentUserId();
+
+        WorkerProfileResponse response =
+                workerProfileService.createWorkerProfile(request, userId);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(response);
     }
 
     @Operation(

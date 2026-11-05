@@ -27,29 +27,30 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class WorkerProfileServiceImpl implements WorkerProfileService {
 
-    AuthenticatedUser user = SecurityUtils.getCurrentUser();
     private final UserAccountRepository userAccountRepository;
     private final WorkerProfileRepository workerProfileRepository;
 
     // 1. Create Worker Profile
+    // 1. Create Worker Profile
     @Override
     @Transactional
     public WorkerProfileResponse createWorkerProfile(
-            CreateWorkerProfileRequest request) {
+            CreateWorkerProfileRequest request,
+            Long userId) {
 
-        Long userId = request.getUserId();
-
-        // Check whether UserAccount exists
-        UserAccount userAccount = userAccountRepository.findById(userId)
+        // Find authenticated user's account
+        UserAccount user = userAccountRepository.findById(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "UserAccount", userId.toString()
-                        ));
+                                "User account",
+                                userId.toString()
+                        )
+                );
 
-        // Validate account role
-        if (userAccount.getRole() != Role.WORKER) {
+        // Validate user role
+        if (user.getRole() != Role.WORKER) {
             throw new BusinessException(
-                    ErrorCode.VALIDATION_FAILED,
+                    ErrorCode.ACCESS_DENIED,
                     "Only WORKER accounts can create worker profiles."
             );
         }
@@ -62,13 +63,14 @@ public class WorkerProfileServiceImpl implements WorkerProfileService {
             );
         }
 
+        // Create worker profile
         WorkerProfile profile = new WorkerProfile();
 
-        // Establish UserAccount relationship
-        profile.setUserAccount(userAccount);
+        profile.setUserAccount(user);
         profile.setBio(request.getBio());
         profile.setProfilePhotoUrl(request.getProfilePhotoUrl());
 
+        // Save profile
         WorkerProfile savedProfile =
                 workerProfileRepository.save(profile);
 
@@ -237,18 +239,24 @@ public class WorkerProfileServiceImpl implements WorkerProfileService {
     }
 
     // Convert WorkerProfile entity into response DTO
-    private WorkerProfileResponse mapToResponse(WorkerProfile profile) {
+    private WorkerProfileResponse mapToResponse(
+            WorkerProfile workerProfile) {
+
+        UserAccount user = workerProfile.getUserAccount();
 
         return WorkerProfileResponse.builder()
-                .id(profile.getId())
-                .userId(profile.getUserAccount().getId())
-                .bio(profile.getBio())
-                .profilePhotoUrl(profile.getProfilePhotoUrl())
-                .verificationStatus(profile.getVerificationStatus())
-                .profileStatus(profile.getProfileStatus())
-                .discoverable(profile.isDiscoverable())
-                .createdAt(profile.getCreatedAt())
-                .updatedAt(profile.getUpdatedAt())
+                .id(workerProfile.getId())
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .bio(workerProfile.getBio())
+                .profilePhotoUrl(workerProfile.getProfilePhotoUrl())
+                .verificationStatus(workerProfile.getVerificationStatus())
+                .profileStatus(workerProfile.getProfileStatus())
+                .discoverable(workerProfile.isDiscoverable())
+                .createdAt(workerProfile.getCreatedAt())
+                .updatedAt(workerProfile.getUpdatedAt())
                 .build();
     }
 }

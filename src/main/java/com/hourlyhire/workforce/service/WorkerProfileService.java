@@ -9,7 +9,10 @@ import org.springframework.data.domain.Pageable;
 
 public interface WorkerProfileService {
 
-    WorkerProfileResponse createWorkerProfile(CreateWorkerProfileRequest request);
+    WorkerProfileResponse createWorkerProfile(
+            CreateWorkerProfileRequest request,
+            Long userId
+    );
 
     WorkerProfileResponse getWorkerProfile(Long workerId);
 
