@@ -42,6 +42,14 @@ public final class SecurityUtils {
         return getCurrentUser().role();
     }
 
+    public static String getCurrentUsername() {
+        return getCurrentUser().username();
+    }
+
+    public static String getCurrentEmail() {
+        return getCurrentUser().email();
+    }
+
     public static boolean hasRole(Role role) {
         return isAuthenticated() && getCurrentRole() == role;
     }
