@@ -1,3 +1,4 @@
+
 package com.hourlyhire.workforce.entity;
 
 import jakarta.persistence.*;
@@ -8,18 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "skills",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_skills_name",
-                        columnNames = "name"
-                )
-        },
-        indexes = {
-                @Index(name = "idx_skills_active", columnList = "active")
-        }
-)
+@Table(name = "skills")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,24 +19,26 @@ public class Skill {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @Column(length = 500)
+    @Column(name = "description")
     private String description;
 
-    @Column(nullable = false)
+    @Column(name = "active", nullable = false)
     private boolean active = true;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
     }
 
     @PreUpdate

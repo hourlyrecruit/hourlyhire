@@ -1,15 +1,17 @@
+
 package com.hourlyhire.workforce.service.impl;
 
 import com.hourlyhire.authentication.entity.UserAccount;
 import com.hourlyhire.authentication.enums.Role;
 import com.hourlyhire.authentication.repository.UserAccountRepository;
-import com.hourlyhire.security.jwt.AuthenticatedUser;
-import com.hourlyhire.security.utils.SecurityUtils;
+
 import com.hourlyhire.shared.enums.ErrorCode;
 import com.hourlyhire.shared.exception.BusinessException;
 import com.hourlyhire.shared.exception.ResourceNotFoundException;
+
 import com.hourlyhire.workforce.dto.request.*;
 import com.hourlyhire.workforce.dto.response.WorkerProfileResponse;
+import com.hourlyhire.workforce.dto.response.WorkerPublicProfileResponse;
 import com.hourlyhire.workforce.entity.WorkerProfile;
 import com.hourlyhire.workforce.enums.ProfileStatus;
 import com.hourlyhire.workforce.enums.VerificationStatus;
@@ -31,62 +33,46 @@ public class WorkerProfileServiceImpl implements WorkerProfileService {
     private final WorkerProfileRepository workerProfileRepository;
 
     // 1. Create Worker Profile
-    // 1. Create Worker Profile
     @Override
     @Transactional
     public WorkerProfileResponse createWorkerProfile(
             CreateWorkerProfileRequest request,
             Long userId) {
 
-        // Find authenticated user's account
         UserAccount user = userAccountRepository.findById(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "User account",
-                                userId.toString()
-                        )
-                );
+                                "User account", userId.toString()));
 
-        // Validate user role
         if (user.getRole() != Role.WORKER) {
             throw new BusinessException(
                     ErrorCode.ACCESS_DENIED,
-                    "Only WORKER accounts can create worker profiles."
-            );
+                    "Only WORKER accounts can create worker profiles.");
         }
 
-        // Check duplicate profile
         if (workerProfileRepository.existsByUserAccount_Id(userId)) {
             throw new BusinessException(
                     ErrorCode.VALIDATION_FAILED,
-                    "Worker profile already exists for this user."
-            );
+                    "Worker profile already exists for this user.");
         }
 
-        // Create worker profile
         WorkerProfile profile = new WorkerProfile();
-
         profile.setUserAccount(user);
         profile.setBio(request.getBio());
         profile.setProfilePhotoUrl(request.getProfilePhotoUrl());
 
-        // Save profile
         WorkerProfile savedProfile =
                 workerProfileRepository.save(profile);
 
         return mapToResponse(savedProfile);
     }
 
-    // 2. Get Worker Profile by Worker ID
+    // 2. Get Worker Profile by Profile ID
     @Override
     @Transactional(readOnly = true)
     public WorkerProfileResponse getWorkerProfile(Long workerId) {
 
-        WorkerProfile profile = workerProfileRepository.findById(workerId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Worker Profile", workerId.toString()
-                        ));
+        WorkerProfile profile = findProfileById(workerId);
 
         return mapToResponse(profile);
     }
@@ -105,108 +91,145 @@ public class WorkerProfileServiceImpl implements WorkerProfileService {
     @Transactional(readOnly = true)
     public WorkerProfileResponse getWorkerProfileByUserId(Long userId) {
 
-        WorkerProfile workerProfile = workerProfileRepository
+        WorkerProfile profile = workerProfileRepository
                 .findByUserAccount_Id(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Worker Profile", userId.toString()
-                        ));
+                                "Worker Profile", userId.toString()));
 
-        return mapToResponse(workerProfile);
+        return mapToResponse(profile);
     }
 
-    // 5. Update Worker Profile
+    // 5. Update Own Worker Profile
     @Override
     @Transactional
     public WorkerProfileResponse updateWorkerProfile(
-            Long workerId,
-            UpdateWorkerProfileRequest request) {
+            UpdateWorkerProfileRequest request,
+            Long userId) {
 
-        WorkerProfile workerProfile = workerProfileRepository
-                .findById(workerId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Worker Profile", workerId.toString()
-                        ));
+        WorkerProfile profile = findProfileByUserId(userId);
 
-        workerProfile.setBio(request.getBio());
-        workerProfile.setProfilePhotoUrl(request.getProfilePhotoUrl());
+        profile.setBio(request.getBio());
+        profile.setProfilePhotoUrl(request.getProfilePhotoUrl());
 
         WorkerProfile updatedProfile =
-                workerProfileRepository.save(workerProfile);
+                workerProfileRepository.save(profile);
 
         return mapToResponse(updatedProfile);
     }
 
-    // 6. Update Visibility
+    @Override
+    @Transactional(readOnly = true)
+    public WorkerPublicProfileResponse getPublicWorkerProfile(Long workerId) {
+
+        WorkerProfile profile = workerProfileRepository.findById(workerId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Worker Profile",
+                                workerId.toString()
+                        )
+                );
+
+        // Check whether the profile is active
+        if (profile.getProfileStatus() != ProfileStatus.ACTIVE) {
+            throw new ResourceNotFoundException(
+                    "Worker Profile", workerId.toString()
+            );
+        }
+
+        // Check whether the worker is verified
+        if (profile.getVerificationStatus() != VerificationStatus.VERIFIED) {
+            throw new ResourceNotFoundException(
+                    "Worker Profile", workerId.toString()
+            );
+        }
+
+        // Check whether the profile is discoverable
+        if (!profile.isDiscoverable()) {
+            throw new ResourceNotFoundException(
+                    "Worker Profile", workerId.toString()
+            );
+        }
+
+        UserAccount user = profile.getUserAccount();
+
+        return WorkerPublicProfileResponse.builder()
+                .id(profile.getId())
+                .username(user.getUsername())
+                .bio(profile.getBio())
+                .profilePhotoUrl(profile.getProfilePhotoUrl())
+                .verificationStatus(profile.getVerificationStatus())
+                .build();
+    }
+
+    // 6. Update Own Profile Visibility
     @Override
     @Transactional
     public WorkerProfileResponse updateVisibility(
-            Long workerId,
-            UpdateVisibilityRequest request) {
+            UpdateVisibilityRequest request,
+            Long userId) {
 
-        WorkerProfile workerProfile = workerProfileRepository
-                .findById(workerId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Worker Profile", workerId.toString()
-                        ));
+        WorkerProfile profile = findProfileByUserId(userId);
 
-        workerProfile.setDiscoverable(request.getDiscoverable());
+        profile.setDiscoverable(request.getDiscoverable());
 
         WorkerProfile updatedProfile =
-                workerProfileRepository.save(workerProfile);
+                workerProfileRepository.save(profile);
 
         return mapToResponse(updatedProfile);
     }
 
-    // 7. Update Profile Status
+    // 7. ADMIN: Update Profile Status
     @Override
     @Transactional
     public WorkerProfileResponse updateProfileStatus(
             Long workerId,
             UpdateProfileStatusRequest request) {
 
-        WorkerProfile workerProfile = workerProfileRepository
-                .findById(workerId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Worker Profile", workerId.toString()
-                        ));
+        WorkerProfile profile = findProfileById(workerId);
 
-        workerProfile.setProfileStatus(request.getProfileStatus());
+        profile.setProfileStatus(request.getProfileStatus());
 
         WorkerProfile updatedProfile =
-                workerProfileRepository.save(workerProfile);
+                workerProfileRepository.save(profile);
 
         return mapToResponse(updatedProfile);
     }
+    @Override
+    @Transactional(readOnly = true)
+    public Page<WorkerPublicProfileResponse> getDiscoverableWorkers(
+            Pageable pageable) {
 
-    // 8. Update Verification Status
+        Page<WorkerProfile> profiles =
+                workerProfileRepository.findByFilters(
+                        ProfileStatus.ACTIVE,
+                        VerificationStatus.VERIFIED,
+                        true,
+                        pageable
+                );
+
+        return profiles.map(this::mapToPublicResponse);
+    }
+
+    // 8. ADMIN: Update Verification Status
     @Override
     @Transactional
     public WorkerProfileResponse updateVerificationStatus(
             Long workerId,
             UpdateVerificationStatusRequest request) {
 
-        WorkerProfile workerProfile = workerProfileRepository
-                .findById(workerId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Worker Profile", workerId.toString()
-                        ));
+        WorkerProfile profile = findProfileById(workerId);
 
-        workerProfile.setVerificationStatus(
-                request.getVerificationStatus()
-        );
+        profile.setVerificationStatus(
+                request.getVerificationStatus());
 
         WorkerProfile updatedProfile =
-                workerProfileRepository.save(workerProfile);
+                workerProfileRepository.save(profile);
 
         return mapToResponse(updatedProfile);
     }
 
-    // 9. Get All Worker Profiles
+    // 9. ADMIN: Get All Worker Profiles
     @Override
     @Transactional(readOnly = true)
     public Page<WorkerProfileResponse> getAllWorkerProfiles(
@@ -238,7 +261,26 @@ public class WorkerProfileServiceImpl implements WorkerProfileService {
         return profiles.map(this::mapToResponse);
     }
 
-    // Convert WorkerProfile entity into response DTO
+    // Find profile using profile primary key
+    private WorkerProfile findProfileById(Long workerId) {
+
+        return workerProfileRepository.findById(workerId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Worker Profile", workerId.toString()));
+    }
+
+    // Find profile using authenticated UserAccount ID
+    private WorkerProfile findProfileByUserId(Long userId) {
+
+        return workerProfileRepository
+                .findByUserAccount_Id(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Worker Profile", userId.toString()));
+    }
+
+    // Convert Entity to Response DTO
     private WorkerProfileResponse mapToResponse(
             WorkerProfile workerProfile) {
 
@@ -252,11 +294,25 @@ public class WorkerProfileServiceImpl implements WorkerProfileService {
                 .role(user.getRole())
                 .bio(workerProfile.getBio())
                 .profilePhotoUrl(workerProfile.getProfilePhotoUrl())
-                .verificationStatus(workerProfile.getVerificationStatus())
+                .verificationStatus(
+                        workerProfile.getVerificationStatus())
                 .profileStatus(workerProfile.getProfileStatus())
                 .discoverable(workerProfile.isDiscoverable())
                 .createdAt(workerProfile.getCreatedAt())
                 .updatedAt(workerProfile.getUpdatedAt())
+                .build();
+    }
+    private WorkerPublicProfileResponse mapToPublicResponse(
+            WorkerProfile profile) {
+
+        UserAccount user = profile.getUserAccount();
+
+        return WorkerPublicProfileResponse.builder()
+                .id(profile.getId())
+                .username(user.getUsername())
+                .bio(profile.getBio())
+                .profilePhotoUrl(profile.getProfilePhotoUrl())
+                .verificationStatus(profile.getVerificationStatus())
                 .build();
     }
 }

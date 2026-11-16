@@ -1,12 +1,19 @@
+
 package com.hourlyhire.workforce.controller;
 
 import com.hourlyhire.authentication.enums.Role;
 import com.hourlyhire.security.jwt.AuthenticatedUser;
+
+import com.hourlyhire.shared.enums.ErrorCode;
+import com.hourlyhire.shared.exception.BusinessException;
+
 import com.hourlyhire.workforce.dto.request.CreateEmployerProfileRequest;
 import com.hourlyhire.workforce.dto.request.UpdateEmployerProfileRequest;
 import com.hourlyhire.workforce.dto.response.EmployerProfileResponse;
+
 import com.hourlyhire.workforce.enums.EmployerType;
 import com.hourlyhire.workforce.enums.ProfileStatus;
+
 import com.hourlyhire.workforce.service.EmployerProfileService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,19 +24,26 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springdoc.core.annotations.ParameterObject;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/workforce/employers")
 @RequiredArgsConstructor
-@Tag(name = "Employer Profile", description = "Employer profile management APIs")
+@Tag(
+        name = "Employer Profile",
+        description = "Employer profile management APIs"
+)
 public class EmployerProfileController {
 
     private final EmployerProfileService employerProfileService;
@@ -38,21 +52,42 @@ public class EmployerProfileController {
     @PostMapping
     @Operation(
             summary = "Create employer profile",
-            description = "Creates a new employer profile for an existing user."
+            description = """
+            EMPLOYER can create a profile for their own account.
+            ADMIN can create a profile for another EMPLOYER account.
+            """
     )
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
     public ResponseEntity<EmployerProfileResponse> createProfile(
             @Valid @RequestBody CreateEmployerProfileRequest request,
             @AuthenticationPrincipal AuthenticatedUser currentUser) {
 
-        Long targetUserId = currentUser.role() == Role.ADMIN
-                ? request.getUserId()
-                : currentUser.id();
+        Long targetUserId;
+
+        if (currentUser.role() == Role.ADMIN) {
+
+            targetUserId = request.getUserId();
+
+            if (targetUserId == null) {
+                throw new BusinessException(
+                        ErrorCode.VALIDATION_FAILED,
+                        "User ID is required for admin profile creation."
+                );
+            }
+
+        } else {
+            targetUserId = currentUser.id();
+        }
 
         EmployerProfileResponse response =
-                employerProfileService.createProfile(request, targetUserId);
+                employerProfileService.createProfile(
+                        request,
+                        targetUserId
+                );
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
     // 2. Get employer profile by profile ID
@@ -73,7 +108,7 @@ public class EmployerProfileController {
         return ResponseEntity.ok(response);
     }
 
-    // 3. Get employer profile by user ID
+    // 3. Get employer profile by UserAccount ID
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get employer profile by user ID")
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
@@ -95,7 +130,7 @@ public class EmployerProfileController {
     @PutMapping("/{employerId}")
     @Operation(
             summary = "Update employer profile",
-            description = "Updates the supplied non-null employer profile fields."
+            description = "Updates supplied non-null employer profile fields."
     )
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
     public ResponseEntity<EmployerProfileResponse> updateProfile(
@@ -131,7 +166,7 @@ public class EmployerProfileController {
         return ResponseEntity.ok(response);
     }
 
-    // 6. Get all employer profiles with pagination
+    // 6. Get all employer profiles
     @GetMapping
     @Operation(summary = "Get all employer profiles")
     @PreAuthorize("hasRole('ADMIN')")
@@ -143,10 +178,9 @@ public class EmployerProfileController {
                     sort = "id"
             ) Pageable pageable) {
 
-        Page<EmployerProfileResponse> response =
-                employerProfileService.getAllProfiles(pageable);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                employerProfileService.getAllProfiles(pageable)
+        );
     }
 
     // 7. Filter employer profiles
@@ -164,15 +198,14 @@ public class EmployerProfileController {
             ) Pageable pageable,
             @AuthenticationPrincipal AuthenticatedUser currentUser) {
 
-        Page<EmployerProfileResponse> response =
+        return ResponseEntity.ok(
                 employerProfileService.getFilteredProfiles(
                         employerType,
                         profileStatus,
                         pageable,
                         currentUser.role()
-                );
-
-        return ResponseEntity.ok(response);
+                )
+        );
     }
 
     // 8. Get logged-in employer's own profile

@@ -5,23 +5,26 @@ import com.hourlyhire.authentication.entity.UserAccount;
 import com.hourlyhire.authentication.enums.Role;
 import com.hourlyhire.authentication.repository.UserAccountRepository;
 
-import com.hourlyhire.workforce.dto.request.CreateEmployerProfileRequest;
-import com.hourlyhire.workforce.dto.request.UpdateEmployerProfileRequest;
-import com.hourlyhire.workforce.dto.response.EmployerProfileResponse;
-import com.hourlyhire.workforce.entity.EmployerProfile;
-import com.hourlyhire.workforce.enums.EmployerType;
-import com.hourlyhire.workforce.enums.ProfileStatus;
-import com.hourlyhire.workforce.repository.EmployerProfileRepository;
-import com.hourlyhire.workforce.service.EmployerProfileService;
-
 import com.hourlyhire.shared.exception.ResourceNotFoundException;
 import com.hourlyhire.shared.exception.BusinessException;
 import com.hourlyhire.shared.enums.ErrorCode;
+
+import com.hourlyhire.workforce.dto.request.CreateEmployerProfileRequest;
+import com.hourlyhire.workforce.dto.request.UpdateEmployerProfileRequest;
+import com.hourlyhire.workforce.dto.response.EmployerProfileResponse;
+
+import com.hourlyhire.workforce.entity.EmployerProfile;
+import com.hourlyhire.workforce.enums.EmployerType;
+import com.hourlyhire.workforce.enums.ProfileStatus;
+
+import com.hourlyhire.workforce.repository.EmployerProfileRepository;
+import com.hourlyhire.workforce.service.EmployerProfileService;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,30 +42,23 @@ public class EmployerProfileServiceImpl implements EmployerProfileService {
             CreateEmployerProfileRequest request,
             Long targetUserId) {
 
-        // Validate target user ID
-        if (targetUserId == null) {
+        UserAccount user = userAccountRepository.findById(targetUserId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User account",
+                                targetUserId.toString()
+                        )
+                );
+
+        // Validate employer role
+        if (user.getRole() != Role.EMPLOYER) {
             throw new BusinessException(
-                    ErrorCode.VALIDATION_FAILED,
-                    "Target user ID is required."
+                    ErrorCode.ACCESS_DENIED,
+                    "Employer profile can only be created for an EMPLOYER account."
             );
         }
 
-        // Find UserAccount
-        UserAccount userAccount = userAccountRepository.findById(targetUserId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "UserAccount",
-                        targetUserId.toString()
-                ));
-
-        // Validate account role
-        if (userAccount.getRole() != Role.EMPLOYER) {
-            throw new BusinessException(
-                    ErrorCode.VALIDATION_FAILED,
-                    "Only users with EMPLOYER role can create employer profiles."
-            );
-        }
-
-        // Check duplicate profile
+        // Prevent duplicate employer profiles
         if (employerProfileRepository.existsByUserAccount_Id(targetUserId)) {
             throw new BusinessException(
                     ErrorCode.VALIDATION_FAILED,
@@ -70,26 +66,25 @@ public class EmployerProfileServiceImpl implements EmployerProfileService {
             );
         }
 
-        // Create employer profile
-        EmployerProfile employer = new EmployerProfile();
+        EmployerProfile employerProfile = new EmployerProfile();
 
-        employer.setUserAccount(userAccount);
-        employer.setEmployerType(request.getEmployerType());
-        employer.setDisplayName(request.getDisplayName());
-        employer.setCompanyLegalName(request.getCompanyLegalName());
-        employer.setBusinessDescription(request.getBusinessDescription());
-        employer.setContactPerson(request.getContactPerson());
-        employer.setContactPhone(request.getContactPhone());
-        employer.setBusinessEmail(request.getBusinessEmail());
-        employer.setWebsiteUrl(request.getWebsiteUrl());
-        employer.setBusinessLogoUrl(request.getBusinessLogoUrl());
-        employer.setProfileStatus(ProfileStatus.ACTIVE);
+        employerProfile.setUserAccount(user);
+        employerProfile.setEmployerType(request.getEmployerType());
+        employerProfile.setDisplayName(request.getDisplayName());
+        employerProfile.setCompanyLegalName(request.getCompanyLegalName());
+        employerProfile.setBusinessDescription(request.getBusinessDescription());
+        employerProfile.setContactPerson(request.getContactPerson());
+        employerProfile.setContactPhone(request.getContactPhone());
+        employerProfile.setBusinessEmail(request.getBusinessEmail());
+        employerProfile.setWebsiteUrl(request.getWebsiteUrl());
+        employerProfile.setBusinessLogoUrl(request.getBusinessLogoUrl());
+        employerProfile.setProfileStatus(ProfileStatus.ACTIVE);
 
-        EmployerProfile saved = employerProfileRepository.save(employer);
+        EmployerProfile savedProfile =
+                employerProfileRepository.save(employerProfile);
 
-        return mapToResponse(saved);
+        return mapToResponse(savedProfile);
     }
-
 
     // 2. Get employer profile by profile ID
     @Override
@@ -105,6 +100,29 @@ public class EmployerProfileServiceImpl implements EmployerProfileService {
 
         return mapToResponse(employer);
     }
+
+    // 3. Get employer profile by UserAccount ID
+    @Override
+    @Transactional(readOnly = true)
+    public EmployerProfileResponse getProfileByUserId(
+            Long userId,
+            Long requesterId,
+            Role requesterRole) {
+
+        EmployerProfile employer = employerProfileRepository
+                .findByUserAccount_Id(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Employer profile",
+                                userId.toString()
+                        )
+                );
+
+        validateProfileAccess(employer, requesterId, requesterRole);
+
+        return mapToResponse(employer);
+    }
+
     // 4. Update employer profile
     @Override
     public EmployerProfileResponse updateProfile(
@@ -115,7 +133,13 @@ public class EmployerProfileServiceImpl implements EmployerProfileService {
 
         EmployerProfile employer = findEmployerById(employerId);
 
+        // Verify ownership or ADMIN access
         validateProfileAccess(employer, requesterId, requesterRole);
+
+        // Update only the fields supplied
+        if (request.getEmployerType() != null) {
+            employer.setEmployerType(request.getEmployerType());
+        }
 
         if (request.getDisplayName() != null) {
             employer.setDisplayName(request.getDisplayName());
@@ -151,7 +175,8 @@ public class EmployerProfileServiceImpl implements EmployerProfileService {
             employer.setBusinessLogoUrl(request.getBusinessLogoUrl());
         }
 
-        EmployerProfile updated = employerProfileRepository.save(employer);
+        EmployerProfile updated =
+                employerProfileRepository.save(employer);
 
         return mapToResponse(updated);
     }
@@ -166,7 +191,8 @@ public class EmployerProfileServiceImpl implements EmployerProfileService {
 
         employer.setProfileStatus(profileStatus);
 
-        EmployerProfile updated = employerProfileRepository.save(employer);
+        EmployerProfile updated =
+                employerProfileRepository.save(employer);
 
         return mapToResponse(updated);
     }
@@ -174,12 +200,12 @@ public class EmployerProfileServiceImpl implements EmployerProfileService {
     // 6. Get all employer profiles
     @Override
     @Transactional(readOnly = true)
-    public Page<EmployerProfileResponse> getAllProfiles(Pageable pageable) {
+    public Page<EmployerProfileResponse> getAllProfiles(
+            Pageable pageable) {
 
         return employerProfileRepository.findAll(pageable)
                 .map(this::mapToResponse);
     }
-
 
     // 7. Get filtered employer profiles
     @Override
@@ -190,7 +216,7 @@ public class EmployerProfileServiceImpl implements EmployerProfileService {
             Pageable pageable,
             Role requesterRole) {
 
-        // Workers can view only ACTIVE employer profiles
+        // Workers can only see ACTIVE employer profiles
         if (requesterRole == Role.WORKER) {
             profileStatus = ProfileStatus.ACTIVE;
         }
@@ -199,34 +225,17 @@ public class EmployerProfileServiceImpl implements EmployerProfileService {
                 .findByFilters(employerType, profileStatus, pageable)
                 .map(this::mapToResponse);
     }
-    // Get employer profile by UserAccount ID
-    @Override
-    @Transactional(readOnly = true)
-    public EmployerProfileResponse getProfileByUserId(
-            Long userId,
-            Long requesterId,
-            Role requesterRole) {
 
-        EmployerProfile employer = employerProfileRepository
-                .findByUserAccount_Id(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Employer profile",
-                        userId.toString()
-                ));
-
-        validateProfileAccess(employer, requesterId, requesterRole);
-
-        return mapToResponse(employer);
-    }
-
-    // Find employer profile or throw exception
+    // Find employer profile by profile ID
     private EmployerProfile findEmployerById(Long employerId) {
 
         return employerProfileRepository.findById(employerId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Employer profile",
-                        employerId.toString()
-                ));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Employer profile",
+                                employerId.toString()
+                        )
+                );
     }
 
     // Validate employer profile ownership and access
@@ -278,9 +287,14 @@ public class EmployerProfileServiceImpl implements EmployerProfileService {
     private EmployerProfileResponse mapToResponse(
             EmployerProfile employer) {
 
+        UserAccount user = employer.getUserAccount();
+
         return EmployerProfileResponse.builder()
                 .id(employer.getId())
-                .userId(employer.getUserAccount().getId())
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
                 .employerType(employer.getEmployerType())
                 .displayName(employer.getDisplayName())
                 .companyLegalName(employer.getCompanyLegalName())

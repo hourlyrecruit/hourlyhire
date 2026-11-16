@@ -9,8 +9,8 @@ import lombok.Setter;
 @Setter
 public class CreateWorkerProfileRequest {
 
-    @NotNull(message = "user ID is required")
-    private Long userId;
+//    @NotNull(message = "user ID is required")
+//    private Long userId;
 
     @Size(max = 2000, message = "Bio must not exceed 2000 characters")
     private String bio;

@@ -133,7 +133,6 @@ public class SkillServiceImpl implements SkillService {
                 .toList();
     }
 
-
     private Skill findSkillById(Long skillId) {
 
         return skillRepository.findById(skillId)

@@ -1,4 +1,3 @@
-
 package com.hourlyhire.workforce.entity;
 
 import com.hourlyhire.authentication.entity.UserAccount;
