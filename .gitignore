@@ -33,6 +33,5 @@ build/
 .vscode/
 
 # Local development configuration
-src/main/resources/application-dev.properties
 .env
 .env
