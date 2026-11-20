@@ -12,6 +12,7 @@ import com.hourlyhire.workforce.service.WorkerProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -30,14 +31,16 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/workforce/profiles")
+@Tag(name = "03 Worker Profile Management",
+        description = "APIs for creating, retrieving, updating and managing worker profiles"
+)
 @RequiredArgsConstructor
 public class WorkerProfileController {
 
     private final WorkerProfileService workerProfileService;
 
     // 1. Create Worker Profile
-    @Operation(
-            summary = "Create Worker Profile",
+    @Operation(summary = "Create Worker Profile. Access: WORKER",
             description = """
             Creates a worker profile for the authenticated user.
             Authentication: Required.
@@ -60,11 +63,9 @@ public class WorkerProfileController {
     }
 
     // 2. Get My Worker Profile
-    @Operation(
-            summary = "Get My Worker Profile",
+    @Operation(summary = "Get My Worker Profile. Access:WORKER",
             description = "Retrieves the authenticated worker's own profile.",
-            security = @SecurityRequirement(name = "bearerAuth")
-    )
+            security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/me")
     @PreAuthorize("hasRole('WORKER')")
     public ResponseEntity<WorkerProfileResponse> getMyProfile() {
@@ -80,8 +81,7 @@ public class WorkerProfileController {
     // 3. Get Worker Profile by Profile ID
     @GetMapping("/{workerId}")
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
-    @Operation(
-            summary = "Get Public Worker Profile",
+    @Operation(summary = "Get Public Worker Profile. Access:EMPLOYER, ADMIN",
             description = """
         Retrieves an eligible worker profile.
         Only ACTIVE, VERIFIED and discoverable profiles are returned.
@@ -101,7 +101,7 @@ public class WorkerProfileController {
 
     // 4. Get Worker Profile by User ID - ADMIN
     @Operation(
-            summary = "Get Worker Profile by User ID",
+            summary = "Get Worker Profile by User ID. Access: ADMIN",
             description = "Allows ADMIN to retrieve a worker profile by account ID.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -115,8 +115,7 @@ public class WorkerProfileController {
 
         return ResponseEntity.ok(response);
     }
-    @Operation(
-            summary = "Get Discoverable Workers ",
+    @Operation(summary = "Get Discoverable Workers. Access:EMPLOYER ",
             description = """
         Retrieves active, verified and discoverable worker profiles.
         Authentication: Required.
@@ -146,7 +145,7 @@ public class WorkerProfileController {
 
     // 5. Update My Worker Profile
     @Operation(
-            summary = "Update My Worker Profile",
+            summary = "Update My Worker Profile. Access:WORKER",
             description = "Allows a worker to update their own bio and profile photo.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -164,8 +163,7 @@ public class WorkerProfileController {
     }
 
     // 6. Update My Profile Visibility
-    @Operation(
-            summary = "Update My Profile Visibility",
+    @Operation(summary = "Update My Profile Visibility. Access:WORKER",
             description = "Allows a worker to enable or disable profile discovery.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -183,8 +181,7 @@ public class WorkerProfileController {
     }
 
     // 7. ADMIN: Update Worker Profile Status
-    @Operation(
-            summary = "Update Worker Profile Status",
+    @Operation(summary = "Update Worker Profile Status. Access:ADMIN",
             description = "Allows ADMIN to activate, deactivate or suspend a worker profile.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -201,8 +198,7 @@ public class WorkerProfileController {
     }
 
     // 8. ADMIN: Update Worker Verification Status
-    @Operation(
-            summary = "Update Worker Verification Status",
+    @Operation(summary = "Update Worker Verification Status.Access: ADMIN",
             description = "Allows ADMIN to approve or reject worker verification.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -220,8 +216,7 @@ public class WorkerProfileController {
     }
 
     // 9. ADMIN: Get All Worker Profiles
-    @Operation(
-            summary = "Get All Worker Profiles",
+    @Operation(summary = "Get All Worker Profiles. Access:ADMIN",
             description = "Allows ADMIN to retrieve worker profiles with pagination.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -244,7 +239,7 @@ public class WorkerProfileController {
 
     // 10. Filter Worker Profiles
     @Operation(
-            summary = "Filter Worker Profiles",
+            summary = "Filter Worker Profiles. Access:EMPLOYER, ADMIN",
             description = """
             ADMIN can filter worker profiles using all available filters.
             EMPLOYER can discover only ACTIVE, VERIFIED and discoverable workers.

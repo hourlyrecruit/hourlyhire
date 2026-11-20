@@ -40,18 +40,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/workforce/employers")
 @RequiredArgsConstructor
-@Tag(
-        name = "Employer Profile",
-        description = "Employer profile management APIs"
-)
+@Tag(name = "04 Employer Profile", description = "Employer profile management APIs")
 public class EmployerProfileController {
 
     private final EmployerProfileService employerProfileService;
 
     // 1. Create employer profile
     @PostMapping
-    @Operation(
-            summary = "Create employer profile",
+    @Operation(summary = "Create employer profile",
             description = """
             EMPLOYER can create a profile for their own account.
             ADMIN can create a profile for another EMPLOYER account.
