@@ -1,4 +1,3 @@
-
 package com.hourlyhire.workforce.controller;
 
 import com.hourlyhire.workforce.dto.request.CreateAvailabilityRequest;
@@ -25,10 +24,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/workforce/availability")
 @RequiredArgsConstructor
-@Tag(
-        name = "Worker Availability",
-        description = "Manage weekly and date-specific worker availability"
-)
+@Tag(name = "08 Worker Availability",
+        description = "Manage weekly and date-specific worker availability. ACCESS:WORKER.")
 @PreAuthorize("hasRole('WORKER')")
 public class WorkerAvailabilityController {
 
@@ -36,10 +33,8 @@ public class WorkerAvailabilityController {
 
     // Create availability
     @PostMapping
-    @Operation(
-            summary = "Create worker availability",
-            description = "Access: WORKER. Creates a weekly or date-specific availability slot for the authenticated worker."
-    )
+    @Operation(summary = "Create worker availability",
+            description = "Access: WORKER. Creates a weekly or date-specific availability slot for the authenticated worker.")
     public ResponseEntity<AvailabilityResponse> createAvailability(
             @Valid @RequestBody CreateAvailabilityRequest request) {
 
@@ -49,10 +44,8 @@ public class WorkerAvailabilityController {
 
     // Get all availability
     @GetMapping("/my-availability")
-    @Operation(
-            summary = "Get my availability",
-            description = "Access: WORKER. Retrieves all weekly and date-specific availability slots of the authenticated worker."
-    )
+    @Operation(summary = "Get my availability",
+            description = "Access: WORKER. Retrieves all weekly and date-specific availability slots of the authenticated worker.")
     public ResponseEntity<List<AvailabilityResponse>> getMyAvailability() {
 
         return ResponseEntity.ok(
@@ -62,10 +55,8 @@ public class WorkerAvailabilityController {
 
     // Get weekly availability by day
     @GetMapping("/weekly/{dayOfWeek}")
-    @Operation(
-            summary = "Get weekly availability by day",
-            description = "Access: WORKER. Retrieves all availability time slots configured for a particular weekday."
-    )
+    @Operation(summary = "Get weekly availability by day",
+            description = "Access: WORKER. Retrieves all availability time slots configured for a particular weekday.")
     public ResponseEntity<List<AvailabilityResponse>> getWeeklyAvailability(
             @PathVariable DayOfWeek dayOfWeek) {
 
@@ -76,10 +67,8 @@ public class WorkerAvailabilityController {
 
     // Get date-specific availability
     @GetMapping("/date")
-    @Operation(
-            summary = "Get availability by date",
-            description = "Access: WORKER. Retrieves all availability time slots configured for a specific calendar date."
-    )
+    @Operation(summary = "Get availability by date",
+            description = "Access: WORKER. Retrieves all availability time slots configured for a specific calendar date.")
     public ResponseEntity<List<AvailabilityResponse>> getAvailabilityByDate(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -92,10 +81,8 @@ public class WorkerAvailabilityController {
 
     // Get availability by ID
     @GetMapping("/{id}")
-    @Operation(
-            summary = "Get availability by ID",
-            description = "Access: WORKER. Retrieves an availability record belonging to the authenticated worker."
-    )
+    @Operation(summary = "Get availability by ID",
+            description = "Access: WORKER. Retrieves an availability record belonging to the authenticated worker.")
     public ResponseEntity<AvailabilityResponse> getAvailabilityById(
             @PathVariable Long id) {
 
@@ -106,10 +93,8 @@ public class WorkerAvailabilityController {
 
     // Update availability
     @PutMapping("/{id}")
-    @Operation(
-            summary = "Update worker availability",
-            description = "Access: WORKER. Updates an existing weekly or date-specific availability time slot."
-    )
+    @Operation(summary = "Update worker availability",
+            description = "Access: WORKER. Updates an existing weekly or date-specific availability time slot.")
     public ResponseEntity<AvailabilityResponse> updateAvailability(
             @PathVariable Long id,
             @Valid @RequestBody CreateAvailabilityRequest request) {
@@ -121,10 +106,8 @@ public class WorkerAvailabilityController {
 
     // Deactivate availability
     @DeleteMapping("/{id}")
-    @Operation(
-            summary = "Deactivate worker availability",
-            description = "Access: WORKER. Marks an availability slot as unavailable without permanently deleting the record."
-    )
+    @Operation(summary = "Deactivate worker availability",
+            description = "Access: WORKER. Marks an availability slot as unavailable without permanently deleting the record.")
     public ResponseEntity<Void> deactivateAvailability(
             @PathVariable Long id) {
 

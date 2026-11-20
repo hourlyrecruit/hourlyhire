@@ -1,4 +1,3 @@
-
 package com.hourlyhire.workforce.controller;
 
 import com.hourlyhire.authentication.enums.Role;
@@ -47,12 +46,11 @@ public class EmployerProfileController {
 
     // 1. Create employer profile
     @PostMapping
-    @Operation(summary = "Create employer profile",
+    @Operation(summary = "Create employer profile. Access: EMPLOYER, ADMIN.",
             description = """
             EMPLOYER can create a profile for their own account.
             ADMIN can create a profile for another EMPLOYER account.
-            """
-    )
+            """)
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
     public ResponseEntity<EmployerProfileResponse> createProfile(
             @Valid @RequestBody CreateEmployerProfileRequest request,
@@ -88,7 +86,7 @@ public class EmployerProfileController {
 
     // 2. Get employer profile by profile ID
     @GetMapping("/{employerId}")
-    @Operation(summary = "Get employer profile by ID")
+    @Operation(summary = "Get employer profile by ID. Access: EMPLOYER, ADMIN.")
     @PreAuthorize("hasAnyRole('WORKER', 'EMPLOYER', 'ADMIN')")
     public ResponseEntity<EmployerProfileResponse> getProfileById(
             @PathVariable Long employerId,
@@ -106,7 +104,7 @@ public class EmployerProfileController {
 
     // 3. Get employer profile by UserAccount ID
     @GetMapping("/user/{userId}")
-    @Operation(summary = "Get employer profile by user ID")
+    @Operation(summary = "Get employer profile by user ID. Access: EMPLOYER, ADMIN.")
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
     public ResponseEntity<EmployerProfileResponse> getProfileByUserId(
             @PathVariable Long userId,
@@ -125,7 +123,7 @@ public class EmployerProfileController {
     // 4. Update employer profile
     @PutMapping("/{employerId}")
     @Operation(
-            summary = "Update employer profile",
+            summary = "Update employer profile. Access: EMPLOYER, ADMIN.",
             description = "Updates supplied non-null employer profile fields."
     )
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
@@ -147,7 +145,7 @@ public class EmployerProfileController {
 
     // 5. Activate or deactivate employer profile
     @PatchMapping("/{employerId}/status")
-    @Operation(summary = "Update employer profile status")
+    @Operation(summary = "Update employer profile status. Access:ADMIN.")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EmployerProfileResponse> updateProfileStatus(
             @PathVariable Long employerId,
@@ -164,7 +162,7 @@ public class EmployerProfileController {
 
     // 6. Get all employer profiles
     @GetMapping
-    @Operation(summary = "Get all employer profiles")
+    @Operation(summary = "Get all employer profiles. Access:ADMIN.")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<EmployerProfileResponse>> getAllProfiles(
             @ParameterObject
@@ -181,7 +179,7 @@ public class EmployerProfileController {
 
     // 7. Filter employer profiles
     @GetMapping("/filter")
-    @Operation(summary = "Filter employer profiles")
+    @Operation(summary = "Filter employer profiles. Access: WORKER, ADMIN.")
     @PreAuthorize("hasAnyRole('WORKER', 'ADMIN')")
     public ResponseEntity<Page<EmployerProfileResponse>> getFilteredProfiles(
             @RequestParam(required = false) EmployerType employerType,
@@ -206,7 +204,7 @@ public class EmployerProfileController {
 
     // 8. Get logged-in employer's own profile
     @GetMapping("/my-profile")
-    @Operation(summary = "Get my employer profile")
+    @Operation(summary = "Get my employer profile. Access:EMPLOYER")
     @PreAuthorize("hasRole('EMPLOYER')")
     public ResponseEntity<EmployerProfileResponse> getMyProfile(
             @AuthenticationPrincipal AuthenticatedUser currentUser) {

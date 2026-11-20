@@ -5,8 +5,10 @@ import com.hourlyhire.workforce.dto.request.UpdateSkillRequest;
 import com.hourlyhire.workforce.dto.response.SkillResponse;
 import com.hourlyhire.workforce.service.SkillService;
 
-import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springdoc.core.annotations.ParameterObject;
@@ -28,13 +30,15 @@ import java.util.List;
 @RequestMapping("/api/v1/workforce/skills")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
+@Tag(name = "05 Skill Management", description = "APIs for creating, retrieving, updating, and managing skills")
 public class SkillController {
 
     private final SkillService skillService;
 
     // 1. Create a new skill
     @PostMapping
-    //@PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create a new skill. Access:ADMIN",
+            description = "Allows an administrator to create a new skill.")
     public ResponseEntity<SkillResponse> createSkill(
             @Valid @RequestBody CreateSkillRequest request) {
 
@@ -45,6 +49,8 @@ public class SkillController {
 
     // 2. Get skill by ID
     @GetMapping("/{skillId}")
+    @Operation(summary = "Get skill by ID. Access:ADMIN",
+            description = "Retrieves the details of a skill using its skill ID.")
     public ResponseEntity<SkillResponse> getSkillById(
             @PathVariable Long skillId) {
 
@@ -55,6 +61,8 @@ public class SkillController {
 
     // 3. Get all skills with pagination
     @GetMapping
+    @Operation(summary = "Get all skills. Access:ADMIN",
+            description = "Retrieves all skills with pagination and sorting support.")
     public ResponseEntity<Page<SkillResponse>> getAllSkills(
             @ParameterObject
             @PageableDefault(
@@ -72,6 +80,8 @@ public class SkillController {
 
     // 4. Get active skills
     @GetMapping("/active")
+    @Operation(summary = "Get active skills. Access:ADMIN",
+            description = "Retrieves the list of currently active skills.")
     public ResponseEntity<List<SkillResponse>> getActiveSkills() {
 
         return ResponseEntity.ok(
@@ -81,7 +91,8 @@ public class SkillController {
 
     // 5. Update skill
     @PutMapping("/{skillId}")
-  //  @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update skill. Access:ADMIN.",
+            description = "Updates the details of an existing skill using its skill ID.")
     public ResponseEntity<SkillResponse> updateSkill(
             @PathVariable Long skillId,
             @Valid @RequestBody UpdateSkillRequest request) {
@@ -93,7 +104,8 @@ public class SkillController {
 
     // 6. Activate or deactivate skill
     @PatchMapping("/{skillId}/status")
-  //  @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update skill status. Access:ADMIN",
+            description = "Activates or deactivates a skill using its skill ID and active status.")
     public ResponseEntity<SkillResponse> updateSkillStatus(
             @PathVariable Long skillId,
             @RequestParam boolean active) {
