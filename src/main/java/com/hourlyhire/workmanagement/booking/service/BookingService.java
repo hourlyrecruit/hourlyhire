@@ -17,4 +17,10 @@ public interface BookingService {
     BookingResponse updateBooking(Long bookingId, BookingRequest request);
 
     void deleteBooking(Long bookingId);
+    BookingResponse acceptBooking(Long bookingId);
+
+    BookingResponse rejectBooking(Long bookingId);
+    // Get all bookings assigned to the authenticated worker
+    List<BookingResponse> getMyBookings();
+    BookingResponse cancelBooking(Long bookingId);
 }

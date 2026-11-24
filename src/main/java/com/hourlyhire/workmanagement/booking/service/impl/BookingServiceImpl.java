@@ -44,13 +44,35 @@ public class BookingServiceImpl implements BookingService {
         this.bookingMapper = bookingMapper;
     }
 
+    private WorkerProfile getAuthenticatedWorker() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null ||
+                !(authentication.getPrincipal() instanceof AuthenticatedUser user)) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+
+        if (user.role() != Role.WORKER) {
+            throw new AccessDeniedException(
+                    "Only workers can accept or reject bookings"
+            );
+        }
+
+        return workerProfileRepository.findByUserAccount_Id(user.id())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Worker profile not found")
+                );
+    }
+
     private EmployerProfile getAuthenticatedEmployer() {
 
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null
-                || !(authentication.getPrincipal() instanceof AuthenticatedUser user)) {
+        if (authentication == null ||
+                !(authentication.getPrincipal() instanceof AuthenticatedUser user)) {
             throw new AccessDeniedException("User is not authenticated");
         }
 
@@ -61,20 +83,22 @@ public class BookingServiceImpl implements BookingService {
 
         return employerProfileRepository.findByUserAccount_Id(user.id())
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Employer profile not found"));
+                        new IllegalArgumentException("Employer profile not found"));
     }
+
+
 
     @Override
     public BookingResponse createBooking(BookingRequest request) {
 
+        // Get authenticated employer
         EmployerProfile employer = getAuthenticatedEmployer();
 
+        // Find selected worker
         WorkerProfile worker = workerProfileRepository
                 .findById(request.getWorkerProfileId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Worker profile not found"));
+                        new IllegalArgumentException("Worker profile not found"));
 
         Booking booking = new Booking();
 
@@ -93,6 +117,7 @@ public class BookingServiceImpl implements BookingService {
 
         return bookingMapper.toResponse(savedBooking);
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -144,6 +169,11 @@ public class BookingServiceImpl implements BookingService {
             throw new AccessDeniedException(
                     "You cannot update this booking");
         }
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only pending bookings can be updated"
+            );
+        }
 
         WorkerProfile worker = workerProfileRepository
                 .findById(request.getWorkerProfileId())
@@ -180,7 +210,136 @@ public class BookingServiceImpl implements BookingService {
             throw new AccessDeniedException(
                     "You cannot delete this booking");
         }
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only pending bookings can be deleted"
+            );
+        }
 
         bookingRepository.delete(booking);
     }
+
+
+    @Override
+    public BookingResponse acceptBooking(Long bookingId) {
+
+        // Get authenticated worker
+        WorkerProfile worker = getAuthenticatedWorker();
+
+        // Find booking
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Booking not found: " + bookingId)
+                );
+
+        // Verify worker ownership
+        if (!booking.getWorkerProfile().getId().equals(worker.getId())) {
+            throw new AccessDeniedException(
+                    "You are not authorized to accept this booking"
+            );
+        }
+
+        // Only pending bookings can be accepted
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only pending bookings can be accepted"
+            );
+        }
+
+        // Update booking status
+        booking.setStatus(BookingStatus.ACCEPTED);
+
+        Booking updatedBooking = bookingRepository.save(booking);
+
+        return bookingMapper.toResponse(updatedBooking);
+    }
+
+    @Override
+    public BookingResponse rejectBooking(Long bookingId) {
+
+        // Get authenticated worker
+        WorkerProfile worker = getAuthenticatedWorker();
+
+        // Find booking
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Booking not found: " + bookingId)
+                );
+
+        // Verify worker ownership
+        if (!booking.getWorkerProfile().getId().equals(worker.getId())) {
+            throw new AccessDeniedException(
+                    "You are not authorized to reject this booking"
+            );
+        }
+
+        // Only pending bookings can be rejected
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only pending bookings can be rejected"
+            );
+        }
+
+        // Update booking status
+        booking.setStatus(BookingStatus.REJECTED);
+
+        Booking updatedBooking = bookingRepository.save(booking);
+
+        return bookingMapper.toResponse(updatedBooking);
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<BookingResponse> getMyBookings() {
+
+        // Get the currently authenticated worker
+        WorkerProfile worker = getAuthenticatedWorker();
+
+        // Find all bookings assigned to this worker
+        List<Booking> bookings =
+                bookingRepository.findAllByWorkerProfile_Id(worker.getId());
+
+        // Convert entities into response DTOs
+        return bookings.stream()
+                .map(bookingMapper::toResponse)
+                .toList();
+    }
+    @Override
+    @Transactional
+    public BookingResponse cancelBooking(Long bookingId) {
+
+        // Get authenticated employer
+        EmployerProfile employer = getAuthenticatedEmployer();
+
+        // Find booking
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Booking not found"));
+
+        // Verify booking belongs to authenticated employer
+        if (!booking.getEmployerProfile().getId()
+                .equals(employer.getId())) {
+
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You are not authorized to cancel this booking"
+            );
+        }
+
+        // Allow cancellation only for PENDING or ACCEPTED bookings
+        if (booking.getStatus() != BookingStatus.PENDING
+                && booking.getStatus() != BookingStatus.ACCEPTED) {
+
+            throw new IllegalStateException(
+                    "Only pending or accepted bookings can be cancelled"
+            );
+        }
+
+        // Update booking status
+        booking.setStatus(BookingStatus.CANCELLED);
+
+        // Save booking
+        Booking cancelledBooking = bookingRepository.save(booking);
+
+        return bookingMapper.toResponse(cancelledBooking);
+    }
+
 }
