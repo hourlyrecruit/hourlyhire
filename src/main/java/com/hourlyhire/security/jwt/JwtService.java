@@ -34,6 +34,8 @@ public class JwtService {
                 .issuer(properties.issuer())
                 .subject(String.valueOf(user.getId()))
                 .claim("role", user.getRole().name())
+                .claim("username", user.getUsername())
+                .claim("email", user.getEmail())
                 .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(properties.expirationSeconds())))
