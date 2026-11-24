@@ -1,7 +1,7 @@
 package com.hourlyhire.identity.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hourlyhire.identity.security.SecurityConfig;
+import com.hourlyhire.SecurityConfig;
 import org.springframework.context.annotation.Import;
 import com.hourlyhire.identity.dto.RegisterRequest;
 import com.hourlyhire.identity.service.AuthService;
