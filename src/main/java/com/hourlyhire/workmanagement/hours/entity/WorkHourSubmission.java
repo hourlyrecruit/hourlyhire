@@ -1,4 +1,3 @@
-
 package com.hourlyhire.workmanagement.hours.entity;
 
 import com.hourlyhire.workmanagement.booking.entity.Booking;
