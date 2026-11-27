@@ -101,6 +101,8 @@ public class WorkerProfileServiceImpl implements WorkerProfileService {
     }
 
     // 5. Update Own Worker Profile
+
+    // 5. Update Own Worker Profile
     @Override
     @Transactional
     public WorkerProfileResponse updateWorkerProfile(
@@ -109,8 +111,17 @@ public class WorkerProfileServiceImpl implements WorkerProfileService {
 
         WorkerProfile profile = findProfileByUserId(userId);
 
-        profile.setBio(request.getBio());
-        profile.setProfilePhotoUrl(request.getProfilePhotoUrl());
+        // Update bio only when it is provided
+        if (request.getBio() != null) {
+            profile.setBio(request.getBio().trim());
+        }
+
+        // Update profile photo only when it is provided
+        if (request.getProfilePhotoUrl() != null) {
+            profile.setProfilePhotoUrl(
+                    request.getProfilePhotoUrl().trim()
+            );
+        }
 
         WorkerProfile updatedProfile =
                 workerProfileRepository.save(profile);

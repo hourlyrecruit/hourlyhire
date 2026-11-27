@@ -1,4 +1,3 @@
-
 package com.hourlyhire.workmanagement.hours.entity;
 
 import com.hourlyhire.workforce.entity.EmployerProfile;

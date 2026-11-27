@@ -1,4 +1,3 @@
-
 package com.hourlyhire.workforce.dto.request;
 
 import com.hourlyhire.workforce.enums.EmployerType;
@@ -13,9 +12,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UpdateEmployerProfileRequest {
+
     // Used by ADMIN when creating a profile for another employer
     private Long userId;
 
+    // Optional during profile updates
     @NotNull(message = "Employer type is required")
     private EmployerType employerType;
 

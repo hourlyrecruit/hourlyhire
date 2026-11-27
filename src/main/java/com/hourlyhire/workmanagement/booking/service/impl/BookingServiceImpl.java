@@ -3,6 +3,7 @@ package com.hourlyhire.workmanagement.booking.service.impl;
 
 import com.hourlyhire.authentication.enums.Role;
 import com.hourlyhire.security.jwt.AuthenticatedUser;
+import com.hourlyhire.shared.exception.ResourceNotFoundException;
 import com.hourlyhire.workforce.entity.EmployerProfile;
 import com.hourlyhire.workforce.entity.WorkerProfile;
 import com.hourlyhire.workforce.repository.EmployerProfileRepository;
@@ -127,7 +128,7 @@ public class BookingServiceImpl implements BookingService {
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new ResourceNotFoundException(
                                 "Booking not found: " + bookingId));
 
         if (!booking.getEmployerProfile().getId()

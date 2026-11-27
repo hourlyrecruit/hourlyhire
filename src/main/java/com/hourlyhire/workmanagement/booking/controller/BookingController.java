@@ -14,7 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@RestControllerAdvice
 @RestController
 @RequestMapping("/api/v1/bookings")
 @Tag(name = "09 Booking Management", description = "APIs for managing worker bookings")
