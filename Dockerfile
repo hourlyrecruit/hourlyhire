@@ -1,4 +1,3 @@
-
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 
 WORKDIR /app
@@ -6,7 +5,11 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-RUN mvn clean package -DskipTests
+# Retry Maven dependency downloads when Maven Central is temporarily unavailable
+RUN mvn -B -ntp \
+    -Dmaven.wagon.http.retryHandler.count=5 \
+    -Dmaven.wagon.httpconnectionManager.ttlSeconds=60 \
+    clean package -DskipTests
 
 FROM eclipse-temurin:21-jre
 
