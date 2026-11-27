@@ -129,7 +129,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Booking not found: " + bookingId));
+                               "", "Booking not found: " + bookingId));
 
         if (!booking.getEmployerProfile().getId()
                 .equals(employer.getId())) {
